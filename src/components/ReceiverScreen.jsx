@@ -95,12 +95,6 @@ const ReceiverScreen = forwardRef(function ReceiverScreen({ socket, roomCode }, 
       </div>
 
       <div className="receiver-panel center-panel">
-        <div className="room-header-row">
-          <h3 className="panel-title">Room</h3>
-          <div className="room-code-inline">
-            <span className="room-code">{roomCode}</span>
-          </div>
-        </div>
         <div className="status-badge connected">
           <span className="status-dot green" />
           Connected
