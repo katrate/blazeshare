@@ -19,16 +19,6 @@ export default function LobbyScreen({ socket, showToast }) {
 
   return (
     <div className="lobby">
-      <div className="lobby-card create-card" onClick={handleCreate}>
-        <span className="lobby-card-icon">📤</span>
-        <span className="lobby-card-title">Create Room</span>
-        <span className="lobby-card-desc">Send files as the host</span>
-      </div>
-
-      <div className="lobby-divider">
-        <span>or join one</span>
-      </div>
-
       <div className="lobby-card join-card">
         <span className="lobby-card-icon">🔗</span>
         <span className="lobby-card-title">Join Room</span>
@@ -42,6 +32,16 @@ export default function LobbyScreen({ socket, showToast }) {
           onKeyDown={e => e.key === 'Enter' && handleJoin()}
         />
         <button className="lobby-join-btn" onClick={handleJoin}>Connect</button>
+      </div>
+
+      <div className="lobby-divider">
+        <span>or create one</span>
+      </div>
+
+      <div className="lobby-card create-card" onClick={handleCreate}>
+        <span className="lobby-card-icon">📤</span>
+        <span className="lobby-card-title">Create Room</span>
+        <span className="lobby-card-desc">Send files as the host</span>
       </div>
     </div>
   )
