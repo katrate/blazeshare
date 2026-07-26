@@ -446,8 +446,7 @@ function startUpload(file) {
 
 // -- Char counter --
 textInput.addEventListener('input', () => {
-  const len = textInput.value.length;
-  textCharCount.textContent = `${len} chars`;
+  textCharCount.textContent = textInput.value.length || '';
 });
 
 // -- Send text (Ctrl+Enter or button) --
@@ -494,7 +493,7 @@ function handleSendText() {
   senderFileList.appendChild(item);
 
   textInput.value = '';
-  textCharCount.textContent = '0 chars';
+  textCharCount.textContent = '';
   showToast('Text sent!', 'success');
 }
 
