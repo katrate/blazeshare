@@ -18,18 +18,16 @@ export default function Hero({ roomCode, showToast, role, receiverCount }) {
 
         {roomCode && (
           <div className="hero-right">
-            <div className="hero-code">
-              <span className="hero-code-text">{roomCode}</span>
-              <button className="hero-copy-btn" onClick={() => { navigator.clipboard.writeText(roomCode); showToast('Copied!', 'success') }}>📋</button>
-            </div>
+            <span className="hero-roomcode" onClick={() => { navigator.clipboard.writeText(roomCode); showToast('Copied!', 'success') }} title="Click to copy">{roomCode}</span>
+            <span className="hero-sep">·</span>
             {isSender ? (
-              <span className={`hero-status ${receiverCount > 0 ? 'connected' : ''}`}>
-                <span className={`hero-dot ${receiverCount > 0 ? 'green' : 'orange'}`} />
-                {receiverCount > 0 ? `${receiverCount} connected` : 'Waiting for receivers...'}
+              <span className={`hero-status ${receiverCount > 0 ? 'green' : ''}`}>
+                <span className="hero-dot" />
+                {receiverCount > 0 ? `${receiverCount} connected` : 'Waiting...'}
               </span>
             ) : (
-              <span className="hero-status connected">
-                <span className="hero-dot green" />
+              <span className="hero-status green">
+                <span className="hero-dot" />
                 Connected
               </span>
             )}

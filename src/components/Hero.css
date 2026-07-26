@@ -48,58 +48,46 @@
 .hero-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
+  font-size: 13px;
 }
 
-.hero-code {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.hero-code-text {
-  font-size: 18px;
+.hero-roomcode {
   font-weight: 700;
-  letter-spacing: 4px;
+  letter-spacing: 3px;
   font-family: 'Inter', monospace;
   color: var(--accent-light);
-}
-
-.hero-copy-btn {
-  font-size: 12px;
-  padding: 3px 6px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--text-muted);
   cursor: pointer;
-  transition: all var(--transition);
 }
 
-.hero-copy-btn:hover {
-  border-color: var(--border-light);
-  color: var(--text-secondary);
+.hero-roomcode:hover {
+  color: var(--accent);
+}
+
+.hero-sep {
+  color: var(--text-muted);
+  opacity: 0.4;
 }
 
 .hero-status {
-  font-size: 13px;
-  color: var(--text-muted);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 5px;
-  white-space: nowrap;
+  color: var(--text-muted);
 }
 
-.hero-status.connected {
+.hero-status.green {
   color: var(--green);
 }
 
 .hero-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   display: inline-block;
+  background: var(--orange);
 }
 
-.hero-dot.orange { background: var(--orange); }
-.hero-dot.green { background: var(--green); }
+.hero-status.green .hero-dot {
+  background: var(--green);
+}
