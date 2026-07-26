@@ -45,8 +45,7 @@ body {
   color: var(--text);
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   overflow-y: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -55,11 +54,12 @@ body {
 /* ============ Layout ============ */
 .app {
   width: 100%;
-  max-width: 480px;
-  padding: 20px 14px;
+  max-width: 100%;
+  padding: 24px 3vw;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  flex: 1;
 }
 
 /* ============ Hero ============ */
@@ -862,7 +862,7 @@ body {
 
 @media (min-width: 768px) {
   .app {
-    padding: 32px 20px;
+    padding: 32px 4vw;
   }
   .card {
     border-radius: 16px;
