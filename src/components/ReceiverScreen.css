@@ -1,0 +1,140 @@
+.receiver {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  padding: 8px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (min-width: 800px) {
+  .receiver {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.receiver-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.center-panel {
+  align-items: center;
+}
+
+.room-code-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.room-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.room-code {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 7px;
+  font-family: 'Inter', monospace;
+  color: var(--accent-light);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  margin-top: 8px;
+}
+
+.status-badge.connected {
+  color: var(--green);
+  background: var(--green-bg);
+  border: 1px solid var(--green-border);
+}
+
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+
+.status-dot.green { background: var(--green); }
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 20px 12px;
+}
+
+.empty-icon { font-size: 28px; margin-bottom: 8px; opacity: 0.5; }
+.empty-text { font-size: 13px; color: var(--text-secondary); }
+
+.text-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  box-shadow: 0 0 0 1px var(--accent-glow);
+}
+
+.text-content {
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.text-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.copy-btn {
+  padding: 6px 14px;
+  font-size: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text-secondary);
+  transition: all var(--transition);
+}
+
+.copy-btn:hover {
+  border-color: var(--border-focus);
+  color: var(--accent-light);
+}
+
+.copied-badge {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--green);
+}

@@ -12,7 +12,8 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 
-// Serve static files
+// Serve built React app (or fallback to public for dev)
+app.use(express.static(path.join(__dirname, 'dist')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Maximum total bytes per room session (server-side enforcement)

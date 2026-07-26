@@ -1,0 +1,114 @@
+.lobby {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 0;
+}
+
+.lobby-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 22px 28px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all var(--transition);
+  width: 100%;
+  max-width: 320px;
+}
+
+.lobby-card:hover {
+  border-color: var(--border-focus);
+  background: var(--accent-subtle);
+}
+
+.create-card {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 1px 3px rgba(194, 65, 12, 0.3);
+}
+
+.create-card:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.create-card .lobby-card-title { color: #fff; }
+.create-card .lobby-card-desc { color: rgba(255,255,255,0.7); }
+
+.lobby-card-icon { font-size: 28px; margin-bottom: 6px; }
+.lobby-card-title { font-size: 16px; font-weight: 600; margin-bottom: 2px; color: var(--text); }
+.lobby-card-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+
+.lobby-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.lobby-divider::before,
+.lobby-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.join-card { cursor: default; }
+.join-card:hover { border-color: var(--border); background: var(--bg-elevated); }
+
+.lobby-input {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Inter', monospace;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 12px;
+  border-radius: var(--radius-xs);
+  outline: none;
+  transition: all var(--transition);
+  margin-bottom: 4px;
+}
+
+.lobby-input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.lobby-input::placeholder {
+  color: var(--text-muted);
+  font-size: 16px;
+  letter-spacing: 2px;
+  font-weight: 400;
+}
+
+.lobby-join-btn {
+  width: 100%;
+  padding: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-xs);
+  transition: all var(--transition);
+  margin-top: 4px;
+}
+
+.lobby-join-btn:hover {
+  background: var(--accent-hover);
+}

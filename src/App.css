@@ -1,0 +1,51 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 4vw 24px;
+}
+
+.error-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.error-icon { font-size: 40px; }
+.error-text { font-size: 15px; color: var(--red); }
+
+.back-btn {
+  padding: 10px 24px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 14px;
+  transition: all var(--transition);
+}
+
+.back-btn:hover {
+  border-color: var(--border-light);
+}
+
+.footer {
+  text-align: center;
+  padding: 12px 4vw;
+  margin-top: auto;
+}
+
+.footer p {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
