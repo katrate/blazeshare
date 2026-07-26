@@ -8,9 +8,9 @@
   width: 100%;
 }
 
-@media (min-width: 800px) {
+@media (min-width: 700px) {
   .receiver {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -24,25 +24,8 @@
   border-radius: var(--radius-sm);
 }
 
-.center-panel {
-  align-items: center;
-}
 
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  padding: 5px 14px;
-  border-radius: var(--radius-full);
-  margin-top: 8px;
-}
 
-.status-badge.connected {
-  color: var(--green);
-  background: var(--green-bg);
-  border: 1px solid var(--green-border);
-}
 
 .status-dot {
   width: 6px; height: 6px;

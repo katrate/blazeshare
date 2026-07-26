@@ -1,5 +1,5 @@
 .hero {
-  padding: 24px 4vw 8px;
+  padding: 20px 4vw 12px;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
@@ -9,42 +9,68 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+}
+
+.hero--centered .hero-top-row {
+  justify-content: center;
+}
+
+.hero--centered .hero-left {
+  text-align: center;
+  align-items: center;
+}
+
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .hero-title {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.hero-logo {
-  font-size: 26px;
-  filter: drop-shadow(0 2px 4px rgba(194, 65, 12, 0.3));
-}
-
-.hero-code {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.hero-code-text {
+.hero-logo {
   font-size: 22px;
+  filter: drop-shadow(0 2px 4px rgba(194, 65, 12, 0.3));
+}
+
+.hero-tagline {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.hero-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hero-code {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hero-code-text {
+  font-size: 18px;
   font-weight: 700;
-  letter-spacing: 5px;
+  letter-spacing: 4px;
   font-family: 'Inter', monospace;
   color: var(--accent-light);
 }
 
 .hero-copy-btn {
-  font-size: 14px;
-  padding: 4px 8px;
+  font-size: 12px;
+  padding: 3px 6px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: var(--radius-xs);
+  border-radius: 4px;
   color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition);
@@ -55,8 +81,25 @@
   color: var(--text-secondary);
 }
 
-.hero-tagline {
+.hero-status {
   font-size: 13px;
   color: var(--text-muted);
-  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
 }
+
+.hero-status.connected {
+  color: var(--green);
+}
+
+.hero-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.hero-dot.orange { background: var(--orange); }
+.hero-dot.green { background: var(--green); }

@@ -87,7 +87,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <Hero roomCode={roomCode} showToast={showToast} />
+      <Hero roomCode={roomCode} showToast={showToast} role={role} receiverCount={receiverCount} />
 
       <main className="main-content">
         {screen === 'lobby' && (

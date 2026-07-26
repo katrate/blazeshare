@@ -89,13 +89,6 @@ export default function SenderScreen({ socket, roomCode, receiverCount, showToas
         </div>
       </div>
 
-      <div className="sender-panel room-panel">
-        <div className={`status-badge ${receiverCount > 0 ? 'connected' : ''}`}>
-          <span className={`status-dot ${receiverCount > 0 ? 'green' : 'orange'}`} />
-          {receiverCount > 0 ? `${receiverCount} connected` : 'Waiting for receivers...'}
-        </div>
-      </div>
-
       <div className="sender-panel text-panel">
         <h3 className="panel-title">Text</h3>
         <textarea className="text-area" placeholder="Type or paste something..." rows={5} value={text} onChange={e => setText(e.target.value)} onKeyDown={e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') handleSendText() }} />
