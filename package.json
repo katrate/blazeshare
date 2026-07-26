@@ -4,7 +4,7 @@
   "description": "Ephemeral peer-to-peer file sharing - nothing stored, instant transfer",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "vite build && node server.js",
     "dev": "node server.js",
     "build": "vite build",
     "prestart": "vite build"
