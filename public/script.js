@@ -516,7 +516,7 @@ socket.on('receive-text', ({ textId, content, timestamp }) => {
   // Animate in fresh
   receiverTextArea.style.animation = 'none';
   receiverTextArea.offsetHeight; // trigger reflow
-  receiverTextArea.style.animation = 'fadeIn 0.35s ease';
+  receiverTextArea.style.animation = 'fadeSlideIn 0.3s ease';
 
   showToast('Text received!', 'info');
 });
