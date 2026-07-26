@@ -90,11 +90,12 @@ export default function SenderScreen({ socket, roomCode, receiverCount, showToas
       </div>
 
       <div className="sender-panel room-panel">
-        <h3 className="panel-title">Room</h3>
-        <div className="room-code-box">
-          <div className="room-label">Your code</div>
-          <div className="room-code">{roomCode}</div>
-          <button className="copy-btn" onClick={() => { navigator.clipboard.writeText(roomCode); showToast('Copied!', 'success') }}>📋 Copy</button>
+        <div className="room-header-row">
+          <h3 className="panel-title">Room</h3>
+          <div className="room-code-inline">
+            <span className="room-code">{roomCode}</span>
+            <button className="copy-btn" onClick={() => { navigator.clipboard.writeText(roomCode); showToast('Copied!', 'success') }}>📋</button>
+          </div>
         </div>
         <div className={`status-badge ${receiverCount > 0 ? 'connected' : ''}`}>
           <span className={`status-dot ${receiverCount > 0 ? 'green' : 'orange'}`} />
