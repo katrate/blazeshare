@@ -38,7 +38,7 @@
   border-radius: var(--radius-xs);
   padding: 22px 16px;
   text-align: center;
-  cursor: pointer;
+  cursor: default;
   transition: all var(--transition);
 }
 
@@ -50,15 +50,92 @@
 .drop-icon { font-size: 28px; margin-bottom: 6px; opacity: 0.7; }
 .drop-text { font-size: 13px; color: var(--text-secondary); margin-bottom: 2px; }
 .drop-text strong { color: var(--accent-light); }
-.drop-hint { font-size: 11px; color: var(--text-muted); }
+.drop-hint { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+
+.browse-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.browse-btn {
+  padding: 7px 14px;
+  font-size: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text-secondary);
+  transition: all var(--transition);
+  cursor: pointer;
+}
+
+.browse-btn:hover {
+  border-color: var(--border-focus);
+  color: var(--accent-light);
+  background: var(--accent-subtle);
+}
+
+.folder-btn {
+  background: rgba(194, 65, 12, 0.08);
+  border-color: rgba(194, 65, 12, 0.2);
+}
+
+.folder-btn:hover {
+  background: rgba(194, 65, 12, 0.15);
+}
 
 /* File list */
 .file-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-height: 220px;
+  gap: 4px;
+  max-height: 320px;
   overflow-y: auto;
+}
+
+/* Folder group */
+.folder-group {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+
+.folder-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  cursor: default;
+}
+
+.folder-icon { font-size: 15px; }
+.folder-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+}
+.folder-count {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+}
+
+.folder-group .file-item {
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+
+.folder-group .file-item:last-child {
+  border-bottom: none;
 }
 
 /* Room panel */

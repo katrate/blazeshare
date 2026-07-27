@@ -31,6 +31,12 @@
   text-overflow: ellipsis;
 }
 
+.file-path {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
 .file-meta {
   font-size: 11px;
   color: var(--text-muted);

@@ -116,7 +116,7 @@ io.on('connection', (socket) => {
   });
 
   // ---- SENDER UPLOADS FILE META ----
-  socket.on('file-meta', ({ room: roomCode, fileId, fileName, fileType, fileSize, totalChunks }) => {
+  socket.on('file-meta', ({ room: roomCode, fileId, fileName, fileType, fileSize, totalChunks, relativePath }) => {
     const key = roomCode.toUpperCase();
     const room = rooms.get(key);
     if (!room || room.senderId !== socket.id) return;
@@ -125,6 +125,7 @@ io.on('connection', (socket) => {
       fileName,
       fileType,
       fileSize,
+      relativePath: relativePath || null,
       chunks: [],
       receivedChunks: 0,
       totalChunks,
@@ -133,7 +134,7 @@ io.on('connection', (socket) => {
     });
 
     // Forward meta to all receivers
-    emitToReceivers(room, 'file-meta', { fileId, fileName, fileType, fileSize, totalChunks });
+    emitToReceivers(room, 'file-meta', { fileId, fileName, fileType, fileSize, totalChunks, relativePath: relativePath || null });
     console.log(`  -> File meta: ${fileName} (${fileId}) in room ${key}`);
   });
 
