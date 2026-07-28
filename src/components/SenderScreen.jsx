@@ -11,7 +11,8 @@ async function traverseEntry(entry, zip, zipRoot) {
   if (entry.isFile) {
     const file = await new Promise((resolve, reject) => entry.file(resolve, reject))
     const relative = zipRoot ? zipRoot + '/' + entry.name : entry.name
-    zip.file(relative, file)
+    const buffer = await file.arrayBuffer()
+    zip.file(relative, buffer)
   } else if (entry.isDirectory) {
     const dirReader = entry.createReader()
     let entries
@@ -31,7 +32,8 @@ async function zipDraggedItems(items) {
   const standaloneFiles = []
   let folderName = 'folder'
 
-  for (const item of items) {
+  const itemsArray = Array.from(items)
+  for (const item of itemsArray) {
     const entry = item.webkitGetAsEntry?.()
     if (!entry) {
       // Fallback: treat as regular file
@@ -80,7 +82,8 @@ async function zipFileListFiles(fileList) {
   const zip = new JSZip()
   for (const file of files) {
     const path = file.webkitRelativePath || file.name
-    zip.file(path, file)
+    const buffer = await file.arrayBuffer()
+    zip.file(path, buffer)
   }
 
   const zipBlob = await zip.generateAsync({ type: 'blob' })
@@ -182,14 +185,15 @@ export default function SenderScreen({ socket, roomCode, receiverCount, showToas
 
     // Check if any item is a directory
     let hasFolder = false
-    for (const item of e.dataTransfer.items) {
+    const dropItems = Array.from(e.dataTransfer.items)
+    for (const item of dropItems) {
       const entry = item.webkitGetAsEntry?.()
       if (entry?.isDirectory) { hasFolder = true; break }
     }
 
     if (hasFolder) {
       try {
-        const { zipFile, standaloneFiles } = await zipDraggedItems(e.dataTransfer.items)
+        const { zipFile, standaloneFiles } = await zipDraggedItems(dropItems)
 
         // Add the zipped folder
         if (zipFile) {
