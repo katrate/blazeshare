@@ -1,56 +1,92 @@
 import { useState, useRef, useCallback } from 'react'
+import JSZip from 'jszip'
 import FileItem, { formatSize } from './FileItem'
 import './SenderScreen.css'
 
 const CHUNK_SIZE = 64 * 1024
 const MAX_SIZE = 2 * 1024 * 1024 * 1024
 
-// ---- Folder traversal helpers (drag-and-drop) ----
-async function traverseEntry(entry, basePath) {
-  const files = []
-  const path = basePath ? basePath + '/' + entry.name : entry.name
-
+// ---- Folder traversal via DataTransferItem (drag-and-drop) ----
+async function traverseEntry(entry, zip, zipRoot) {
   if (entry.isFile) {
     const file = await new Promise((resolve, reject) => entry.file(resolve, reject))
-    file._relativePath = path
-    file._isFromFolder = true
-    files.push(file)
+    const relative = zipRoot ? zipRoot + '/' + entry.name : entry.name
+    zip.file(relative, file)
   } else if (entry.isDirectory) {
     const dirReader = entry.createReader()
     let entries
     do {
       entries = await new Promise((resolve) => dirReader.readEntries(resolve))
       for (const child of entries) {
-        const childFiles = await traverseEntry(child, path)
-        files.push(...childFiles)
+        const childPath = zipRoot ? zipRoot + '/' + entry.name : entry.name
+        await traverseEntry(child, zip, childPath)
       }
     } while (entries.length > 0)
   }
-
-  return files
 }
 
-async function collectFilesFromItems(items) {
-  const allFiles = []
-  const promises = []
+// Zip items from drag-and-drop DataTransferItemList
+async function zipDraggedItems(items) {
+  const zip = new JSZip()
+  const standaloneFiles = []
+  let folderName = 'folder'
 
   for (const item of items) {
     const entry = item.webkitGetAsEntry?.()
-    if (!entry) continue
-    promises.push(traverseEntry(entry, ''))
+    if (!entry) {
+      // Fallback: treat as regular file
+      const file = item.getAsFile?.()
+      if (file) standaloneFiles.push(file)
+      continue
+    }
+
+    if (entry.isDirectory) {
+      folderName = entry.name
+      const dirReader = entry.createReader()
+      let entries
+      do {
+        entries = await new Promise((resolve) => dirReader.readEntries(resolve))
+        for (const child of entries) {
+          await traverseEntry(child, zip, entry.name)
+        }
+      } while (entries.length > 0)
+    } else {
+      const file = await new Promise((resolve, reject) => entry.file(resolve, reject))
+      standaloneFiles.push(file)
+    }
   }
 
-  const results = await Promise.all(promises)
-  for (const result of results) allFiles.push(...result)
-  return allFiles
+  // Generate zip if we have folder contents
+  const zipKeys = Object.keys(zip.files).filter(k => !zip.files[k].dir)
+  let zipFile = null
+  if (zipKeys.length > 0) {
+    const zipBlob = await zip.generateAsync({ type: 'blob' })
+    zipFile = new File([zipBlob], folderName + '.zip', { type: 'application/zip' })
+    zipFile._isZippedFolder = true
+  }
+
+  return { zipFile, standaloneFiles }
 }
 
-// ---- Get folder name from first relativePath ----
-function getFolderLabel(files) {
-  const fp = files.find(f => f._relativePath || f.relativePath)
-  if (!fp) return null
-  const path = fp._relativePath || fp.relativePath
-  return path.split('/')[0]
+// Zip files from a FileList (e.g. webkitdirectory input) using webkitRelativePath
+async function zipFileListFiles(fileList) {
+  const files = Array.from(fileList)
+  if (files.length === 0) return null
+
+  // Determine folder name from first file's webkitRelativePath
+  const firstPath = files[0].webkitRelativePath || files[0].name
+  const folderName = firstPath.split('/')[0] || 'folder'
+
+  const zip = new JSZip()
+  for (const file of files) {
+    const path = file.webkitRelativePath || file.name
+    zip.file(path, file)
+  }
+
+  const zipBlob = await zip.generateAsync({ type: 'blob' })
+  const zipFile = new File([zipBlob], folderName + '.zip', { type: 'application/zip' })
+  zipFile._isZippedFolder = true
+  return zipFile
 }
 
 export default function SenderScreen({ socket, roomCode, receiverCount, showToast }) {
@@ -64,22 +100,17 @@ export default function SenderScreen({ socket, roomCode, receiverCount, showToas
   const addFile = useCallback((file) => {
     const id = crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2)
     const totalChunks = Math.ceil(file.size / CHUNK_SIZE)
-    const relativePath = file._relativePath || file.webkitRelativePath || null
-    const isFromFolder = !!(file._isFromFolder || file.webkitRelativePath)
-    const folderRoot = relativePath ? relativePath.split('/')[0] : null
 
     const fileEntry = {
       id, file, fileName: file.name, fileType: file.type, fileSize: file.size,
       totalChunks, receivedChunks: 0, status: 'Sending...',
-      relativePath,
-      isFromFolder,
-      folderRoot,
+      isZippedFolder: !!file._isZippedFolder,
     }
     setFiles(prev => [...prev, fileEntry])
 
     socket.emit('file-meta', {
       room: roomCode, fileId: id, fileName: file.name, fileType: file.type,
-      fileSize: file.size, totalChunks, relativePath,
+      fileSize: file.size, totalChunks,
     })
 
     let offset = 0, chunkIndex = 0
@@ -116,31 +147,69 @@ export default function SenderScreen({ socket, roomCode, receiverCount, showToas
     for (const f of items) addFile(f)
   }, [addFile, showToast])
 
-  const handleDrop = useCallback(async (e) => {
-    e.preventDefault()
-    if (e.dataTransfer.items?.length) {
-      // Check if any item is a directory
-      let hasFolder = false
-      for (const item of e.dataTransfer.items) {
-        const entry = item.webkitGetAsEntry?.()
-        if (entry?.isDirectory) { hasFolder = true; break }
-      }
+  // ---- Folder input handler ----
+  const handleFolderInput = useCallback(async (e) => {
+    const files = e.target.files
+    e.target.value = ''
+    if (!files || files.length === 0) return
 
-      if (hasFolder) {
-        const folderFiles = await collectFilesFromItems(e.dataTransfer.items)
-        if (folderFiles.length === 0) {
-          showToast('Folder is empty', 'info')
-          return
-        }
-        handleFiles(folderFiles)
-        const label = getFolderLabel(folderFiles)
-        showToast(`📁 ${label || folderFiles.length + ' files'} added`, 'success')
+    try {
+      const zipFile = await zipFileListFiles(files)
+      if (!zipFile) {
+        showToast('Folder is empty', 'info')
         return
       }
+
+      // Check size of all files individually
+      let totalSum = 0
+      for (const f of files) totalSum += f.size
+      if (totalSum > MAX_SIZE) {
+        showToast('Folder exceeds 2GB limit', 'error')
+        return
+      }
+
+      addFile(zipFile)
+      showToast(`📁 ${zipFile.name.replace('.zip', '')} added as zip`, 'success')
+    } catch (err) {
+      showToast('Failed to zip folder', 'error')
     }
-    // Regular files drop
+  }, [addFile, showToast])
+
+  // ---- Drag-and-drop handler ----
+  const handleDrop = useCallback(async (e) => {
+    e.preventDefault()
+    if (!e.dataTransfer.items?.length) return
+
+    // Check if any item is a directory
+    let hasFolder = false
+    for (const item of e.dataTransfer.items) {
+      const entry = item.webkitGetAsEntry?.()
+      if (entry?.isDirectory) { hasFolder = true; break }
+    }
+
+    if (hasFolder) {
+      try {
+        const { zipFile, standaloneFiles } = await zipDraggedItems(e.dataTransfer.items)
+
+        // Add the zipped folder
+        if (zipFile) {
+          addFile(zipFile)
+          showToast(`📁 ${zipFile.name.replace('.zip', '')} added as zip`, 'success')
+        }
+
+        // Add standalone files separately
+        if (standaloneFiles.length > 0) {
+          handleFiles(standaloneFiles)
+        }
+      } catch (err) {
+        showToast('Failed to process dropped items', 'error')
+      }
+      return
+    }
+
+    // No folders — pass through as regular files
     if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files)
-  }, [handleFiles, showToast])
+  }, [addFile, showToast, handleFiles])
 
   const removeFile = useCallback((file) => {
     socket.emit('cancel-file', { room: roomCode, fileId: file.id })
@@ -158,17 +227,8 @@ export default function SenderScreen({ socket, roomCode, receiverCount, showToas
     setText('')
   }
 
-  // ---- Group files by folder root ----
-  const folderGroups = {}
-  const standaloneFiles = []
-  for (const f of files) {
-    if (f.isFromFolder && f.folderRoot) {
-      if (!folderGroups[f.folderRoot]) folderGroups[f.folderRoot] = []
-      folderGroups[f.folderRoot].push(f)
-    } else {
-      standaloneFiles.push(f)
-    }
-  }
+  const folderFiles = files.filter(f => f.isZippedFolder)
+  const regularFiles = files.filter(f => !f.isZippedFolder)
 
   return (
     <div className="sender">
@@ -177,7 +237,7 @@ export default function SenderScreen({ socket, roomCode, receiverCount, showToas
         <div className="drop-zone" onDrop={handleDrop} onDragOver={e => e.preventDefault()}>
           <div className="drop-icon">📁</div>
           <p className="drop-text">Drop files or folders, or <strong>browse</strong></p>
-          <p className="drop-hint">Up to 2GB total · folders preserve structure</p>
+          <p className="drop-hint">Up to 2GB total · folders shared as single zip</p>
           <div className="browse-buttons">
             <button className="browse-btn" onClick={() => fileInputRef.current?.click()}>
               📄 Select Files
@@ -190,28 +250,25 @@ export default function SenderScreen({ socket, roomCode, receiverCount, showToas
             onChange={e => { handleFiles(e.target.files); e.target.value = '' }} />
           <input ref={folderInputRef} type="file" multiple hidden
             {...{ webkitdirectory: '', directory: '' }}
-            onChange={e => { handleFiles(e.target.files); e.target.value = '' }} />
+            onChange={handleFolderInput} />
         </div>
 
         <div className="file-list">
-          {/* Folder groups */}
-          {Object.entries(folderGroups).map(([root, groupFiles]) => (
-            <div key={root} className="folder-group">
-              <div className="folder-header">
-                <span className="folder-icon">📂</span>
-                <span className="folder-name">{root}</span>
-                <span className="folder-count">{groupFiles.length} file{groupFiles.length > 1 ? 's' : ''}</span>
-              </div>
-              {groupFiles.map(f => (
-                <FileItem key={f.id} file={f} onRemove={removeFile} />
-              ))}
-            </div>
-          ))}
-
-          {/* Standalone files */}
-          {standaloneFiles.map(f => (
+          {/* Zipped folder items */}
+          {folderFiles.map(f => (
             <FileItem key={f.id} file={f} onRemove={removeFile} />
           ))}
+
+          {/* Regular files */}
+          {regularFiles.map(f => (
+            <FileItem key={f.id} file={f} onRemove={removeFile} />
+          ))}
+
+          {files.length === 0 && (
+            <div className="file-list-empty">
+              <p>No files added yet</p>
+            </div>
+          )}
         </div>
       </div>
 

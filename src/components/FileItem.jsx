@@ -29,17 +29,14 @@ export function formatSize(bytes) {
 export default function FileItem({ file, onDownload, onRemove, isReceiver }) {
   const pct = file.totalChunks ? Math.round((file.receivedChunks / file.totalChunks) * 100) : 0
 
-  const displayPath = file.isFromFolder && file.relativePath
-    ? file.relativePath.split('/').slice(0, -1).join(' / ')
-    : null
+  const icon = file.isZippedFolder ? '📦' : getIcon(file.fileType, file.fileName)
 
   return (
     <div className={`file-item ${file.justArrived ? 'just-arrived' : ''}`}>
-      <span className="file-icon">{getIcon(file.fileType, file.fileName)}</span>
+      <span className="file-icon">{icon}</span>
       <div className="file-info">
         <div className="file-name">
           {file.fileName}
-          {displayPath && <span className="file-path"> — {displayPath}</span>}
         </div>
         <div className="file-meta">
           {file.status || formatSize(file.fileSize)}

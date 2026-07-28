@@ -85,6 +85,8 @@
   background: rgba(194, 65, 12, 0.15);
 }
 
+.folder-btn .icon { display: inline; }
+
 /* File list */
 .file-list {
   display: flex;
@@ -94,48 +96,11 @@
   overflow-y: auto;
 }
 
-/* Folder group */
-.folder-group {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xs);
-  overflow: hidden;
-  background: var(--bg-surface);
-}
-
-.folder-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
-  background: var(--bg-elevated);
-  border-bottom: 1px solid var(--border);
-  cursor: default;
-}
-
-.folder-icon { font-size: 15px; }
-.folder-name {
+.file-list-empty {
+  text-align: center;
+  padding: 20px 12px;
   font-size: 12px;
-  font-weight: 600;
-  color: var(--text);
-  flex: 1;
-}
-.folder-count {
-  font-size: 10px;
   color: var(--text-muted);
-  background: var(--bg-surface);
-  padding: 2px 7px;
-  border-radius: var(--radius-full);
-}
-
-.folder-group .file-item {
-  border: none;
-  border-radius: 0;
-  border-bottom: 1px solid var(--border);
-  background: transparent;
-}
-
-.folder-group .file-item:last-child {
-  border-bottom: none;
 }
 
 /* Room panel */

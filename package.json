@@ -12,6 +12,7 @@
   "dependencies": {
     "@vitejs/plugin-react": "^6.0.4",
     "express": "^4.18.2",
+    "jszip": "^3.10.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "socket.io": "^4.7.4",
