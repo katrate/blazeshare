@@ -7,12 +7,13 @@ const CHUNK_SIZE = 64 * 1024
 const MAX_SIZE = 2 * 1024 * 1024 * 1024
 
 // ---- Folder traversal via DataTransferItem (drag-and-drop) ----
-async function traverseEntry(entry, zip, zipRoot) {
+async function traverseEntry(entry, zip, zipRoot, onFileProgress) {
   if (entry.isFile) {
     const file = await new Promise((resolve, reject) => entry.file(resolve, reject))
     const relative = zipRoot ? zipRoot + '/' + entry.name : entry.name
     const buffer = await file.arrayBuffer()
     zip.file(relative, buffer)
+    onFileProgress?.()
   } else if (entry.isDirectory) {
     const dirReader = entry.createReader()
     let entries
@@ -20,23 +21,23 @@ async function traverseEntry(entry, zip, zipRoot) {
       entries = await new Promise((resolve) => dirReader.readEntries(resolve))
       for (const child of entries) {
         const childPath = zipRoot ? zipRoot + '/' + entry.name : entry.name
-        await traverseEntry(child, zip, childPath)
+        await traverseEntry(child, zip, childPath, onFileProgress)
       }
     } while (entries.length > 0)
   }
 }
 
 // Zip items from drag-and-drop DataTransferItemList
-async function zipDraggedItems(items) {
+async function zipDraggedItems(items, onProgress) {
   const zip = new JSZip()
   const standaloneFiles = []
   let folderName = 'folder'
+  let fileCount = 0
 
   const itemsArray = Array.from(items)
   for (const item of itemsArray) {
     const entry = item.webkitGetAsEntry?.()
     if (!entry) {
-      // Fallback: treat as regular file
       const file = item.getAsFile?.()
       if (file) standaloneFiles.push(file)
       continue
@@ -49,7 +50,14 @@ async function zipDraggedItems(items) {
       do {
         entries = await new Promise((resolve) => dirReader.readEntries(resolve))
         for (const child of entries) {
-          await traverseEntry(child, zip, entry.name)
+          await traverseEntry(child, zip, entry.name, () => {
+            fileCount++
+            onProgress?.({
+              phase: 'reading',
+              percent: 8,
+              label: `Reading file ${fileCount}...`,
+            })
+          })
         }
       } while (entries.length > 0)
     } else {
@@ -62,7 +70,15 @@ async function zipDraggedItems(items) {
   const zipKeys = Object.keys(zip.files).filter(k => !zip.files[k].dir)
   let zipFile = null
   if (zipKeys.length > 0) {
-    const zipBlob = await zip.generateAsync({ type: 'blob' })
+    onProgress?.({ phase: 'compressing', percent: 15, label: 'Compressing...' })
+    const zipBlob = await zip.generateAsync(
+      { type: 'blob' },
+      (meta) => onProgress?.({
+        phase: 'compressing',
+        percent: Math.round(15 + meta.percent * 0.85),
+        label: `Compressing ${Math.round(meta.percent)}%`,
+      })
+    )
     zipFile = new File([zipBlob], folderName + '.zip', { type: 'application/zip' })
     zipFile._isZippedFolder = true
   }
@@ -71,22 +87,35 @@ async function zipDraggedItems(items) {
 }
 
 // Zip files from a FileList (e.g. webkitdirectory input) using webkitRelativePath
-async function zipFileListFiles(fileList) {
+async function zipFileListFiles(fileList, onProgress) {
   const files = Array.from(fileList)
   if (files.length === 0) return null
 
-  // Determine folder name from first file's webkitRelativePath
   const firstPath = files[0].webkitRelativePath || files[0].name
   const folderName = firstPath.split('/')[0] || 'folder'
 
   const zip = new JSZip()
-  for (const file of files) {
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i]
     const path = file.webkitRelativePath || file.name
     const buffer = await file.arrayBuffer()
     zip.file(path, buffer)
+    onProgress?.({
+      phase: 'reading',
+      percent: Math.round(((i + 1) / files.length) * 20),
+      label: `Reading files (${i + 1}/${files.length})`,
+    })
   }
 
-  const zipBlob = await zip.generateAsync({ type: 'blob' })
+  onProgress?.({ phase: 'compressing', percent: 20, label: 'Compressing...' })
+  const zipBlob = await zip.generateAsync(
+    { type: 'blob' },
+    (meta) => onProgress?.({
+      phase: 'compressing',
+      percent: Math.round(20 + meta.percent * 0.8),
+      label: `Compressing ${Math.round(meta.percent)}%`,
+    })
+  )
   const zipFile = new File([zipBlob], folderName + '.zip', { type: 'application/zip' })
   zipFile._isZippedFolder = true
   return zipFile
@@ -96,6 +125,7 @@ export default function SenderScreen({ socket, roomCode, receiverCount, showToas
   const [files, setFiles] = useState([])
   const [text, setText] = useState('')
   const [sentTexts, setSentTexts] = useState([])
+  const [zipping, setZipping] = useState(null)
   const fileInputRef = useRef(null)
   const folderInputRef = useRef(null)
   const chunkReaders = useRef(new Map())
@@ -156,18 +186,21 @@ export default function SenderScreen({ socket, roomCode, receiverCount, showToas
     e.target.value = ''
     if (!files || files.length === 0) return
 
+    // Check size of all files individually
+    let totalSum = 0
+    for (const f of files) totalSum += f.size
+    if (totalSum > MAX_SIZE) {
+      showToast('Folder exceeds 2GB limit', 'error')
+      return
+    }
+
+    setZipping({ percent: 0, label: 'Reading files...' })
     try {
-      const zipFile = await zipFileListFiles(files)
+      const zipFile = await zipFileListFiles(files, (p) => {
+        setZipping({ percent: p.percent, label: p.label })
+      })
       if (!zipFile) {
         showToast('Folder is empty', 'info')
-        return
-      }
-
-      // Check size of all files individually
-      let totalSum = 0
-      for (const f of files) totalSum += f.size
-      if (totalSum > MAX_SIZE) {
-        showToast('Folder exceeds 2GB limit', 'error')
         return
       }
 
@@ -175,6 +208,8 @@ export default function SenderScreen({ socket, roomCode, receiverCount, showToas
       showToast(`📁 ${zipFile.name.replace('.zip', '')} added as zip`, 'success')
     } catch (err) {
       showToast('Failed to zip folder', 'error')
+    } finally {
+      setZipping(null)
     }
   }, [addFile, showToast])
 
@@ -192,8 +227,11 @@ export default function SenderScreen({ socket, roomCode, receiverCount, showToas
     }
 
     if (hasFolder) {
+      setZipping({ percent: 0, label: 'Preparing folder...' })
       try {
-        const { zipFile, standaloneFiles } = await zipDraggedItems(dropItems)
+        const { zipFile, standaloneFiles } = await zipDraggedItems(dropItems, (p) => {
+          setZipping({ percent: p.percent, label: p.label })
+        })
 
         // Add the zipped folder
         if (zipFile) {
@@ -207,6 +245,8 @@ export default function SenderScreen({ socket, roomCode, receiverCount, showToas
         }
       } catch (err) {
         showToast('Failed to process dropped items', 'error')
+      } finally {
+        setZipping(null)
       }
       return
     }
@@ -256,6 +296,27 @@ export default function SenderScreen({ socket, roomCode, receiverCount, showToas
             {...{ webkitdirectory: '', directory: '' }}
             onChange={handleFolderInput} />
         </div>
+
+        {/* Zipping overlay */}
+        {zipping && (
+          <div className="zipping-overlay">
+            <div className="zipping-card">
+              <div className="zipping-spinner">
+                <svg className="zipping-spinner-ring" viewBox="0 0 50 50">
+                  <circle className="zipping-spinner-bg" cx="25" cy="25" r="20" fill="none" strokeWidth="4" />
+                  <circle className="zipping-spinner-arc" cx="25" cy="25" r="20" fill="none" strokeWidth="4"
+                    strokeDasharray={2 * Math.PI * 20}
+                    strokeDashoffset={2 * Math.PI * 20 * (1 - zipping.percent / 100)} />
+                </svg>
+                <span className="zipping-icon">📦</span>
+              </div>
+              <p className="zipping-label">{zipping.label}</p>
+              <div className="zipping-bar-track">
+                <div className="zipping-bar-fill" style={{ width: `${zipping.percent}%` }} />
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="file-list">
           {/* Zipped folder items */}
